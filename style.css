@@ -94,9 +94,28 @@ nav a:hover {
 .icon-btn {
     background: none;
     border: none;
-    font-size: 18px;
     cursor: pointer;
     color: var(--color-text);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.icon-btn svg {
+    width: 20px;
+    height: 20px;
+}
+
+.icon-btn .icon-sun {
+    display: none;
+}
+
+[data-theme='dark'] .icon-btn .icon-sun {
+    display: block;
+}
+
+[data-theme='dark'] .icon-btn .icon-moon {
+    display: none;
 }
 
 .hero {
