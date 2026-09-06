@@ -305,3 +305,40 @@ nav a:hover {
     margin-top: 12px;
     color: var(--color-text-secondary);
 }
+
+.about {
+    max-width: var(--max-width);
+    margin: 0 auto;
+    padding: 80px 24px;
+    text-align: center;
+}
+
+.about h2 {
+    font-size: 32px;
+    font-weight: 600;
+    margin-bottom: 24px;
+}
+
+.about-text {
+    max-width: 600px;
+    margin: 0 auto 48px;
+    color: var(--color-text-secondary);
+    font-size: 18px;
+}
+
+.about-features {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 32px;
+}
+
+.about-feature h3 {
+    font-size: 18px;
+    font-weight: 600;
+    margin-bottom: 8px;
+}
+
+.about-feature p {
+    color: var(--color-text-secondary);
+    font-size: 14px;
+}
