@@ -24,3 +24,10 @@ nextBtn.addEventListener('click', () => {
 prevBtn.addEventListener('click', () => {
     track.scrollBy({ left: -track.clientWidth, behavior: 'smooth' });
 });
+
+const menuToggle = document.querySelector('#menu-toggle');
+const nav = document.querySelector('nav');
+
+menuToggle.addEventListener('click', () => {
+    nav.classList.toggle('nav-open');
+});
