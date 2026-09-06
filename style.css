@@ -98,3 +98,38 @@ nav a:hover {
     cursor: pointer;
     color: var(--color-text);
 }
+
+.hero {
+    max-width: var(--max-width);
+    margin: 0 auto;
+    padding: 120px 24px;
+    text-align: center;
+}
+
+.hero h1 {
+    font-size: clamp(32px, 6vw, 64px);
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    margin-bottom: 16px;
+}
+
+.hero p {
+    font-size: 20px;
+    color: var(--color-text-secondary);
+    margin-bottom: 32px;
+}
+
+.btn {
+    display: inline-block;
+    background-color: var(--color-accent);
+    color: #ffffff;
+    padding: 12px 28px;
+    border-radius: 980px;
+    font-size: 16px;
+    font-weight: 500;
+    transition: opacity 0.2s ease;
+}
+
+.btn:hover {
+    opacity: 0.85;
+}
