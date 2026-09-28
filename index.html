@@ -17,7 +17,7 @@
 <header>
     <nav>
         <ul>
-            <li><a href="#catalog">Catalog</a></li>
+            <li><a href="#/catalog">Catalog</a></li>
             <li><a href="#faq">FAQ</a></li>
             <li><a href="#about">About</a></li>
         </ul>
@@ -38,10 +38,11 @@
     </div>
 </header>
 <main>
+    <div id="landing-page">
     <section class="hero" id="top">
         <h1>Find what you need</h1>
         <p>High-quality products with delivery across country</p>
-        <a href="#catalog" class="btn">Browse Catalog</a>
+        <a href="#/catalog" class="btn">Browse Catalog</a>
     </section>
     <section class="carousel" id="promo">
         <h2>Special offers</h2>
@@ -65,43 +66,6 @@
             </ul>
 
             <button class="carousel-btn carousel-btn--next"><svg height="24px" viewBox="0 -960 960 960" width="24px" fill="currentColor"><path d="m560-240-56-58 142-142H160v-80h486L504-662l56-58 240 240-240 240Z"/></svg></button>
-        </div>
-    </section>
-    <section class="catalog" id="catalog">
-        <h2>Most popular</h2>
-
-        <div class="product-grid">
-            <article class="product-card">
-                <img src="https://placehold.co/400x400" alt="Old Money Polo, M size">
-                <div class="product-info">
-                    <h3>Old Money Polo</h3>
-                    <p class="product-price">29 $</p>
-                </div>
-            </article>
-            
-            <article class="product-card">
-                <img src="https://placehold.co/400x400" alt="Memento RAM">
-                <div class="product-info">
-                    <h3>Memento RAM</h3>
-                    <p class="product-price">67 $</p>
-                </div>
-            </article>
-
-            <article class="product-card">
-                <img src="https://placehold.co/400x400" alt="Clin Window Cleaner">
-                <div class="product-info">
-                    <h3>Clin Window Cleaner</h3>
-                    <p class="product-price">4 $</p>
-                </div>
-            </article>
-
-            <article class="product-card">
-                <img src="https://placehold.co/400x400" alt="Axel Parrot Statue">
-                <div class="product-info">
-                    <h3>Axel Parrot Statue</h3>
-                    <p class="product-price">12 $</p>
-                </div>
-            </article>
         </div>
     </section>
     <section class="faq" id="faq">
@@ -148,6 +112,8 @@
             </div>
         </div>
     </section>
+    </div>
+    <div id="app-page" hidden></div>
 </main>
 <footer>
     <div class="footer-content">
@@ -158,7 +124,7 @@
 
         <nav class="footer-nav">
             <ul>
-                <li><a href="#catalog">Catalog</a></li>
+                <li><a href="#/catalog">Catalog</a></li>
                 <li><a href="#faq">FAQ</a></li>
                 <li><a href="#about">About</a></li>
             </ul>
@@ -174,6 +140,11 @@
 </footer>
 <script src="js/store.js" defer></script>
 <script src="js/router.js" defer></script>
+<script src="js/views/catalog.js" defer></script>
+<script src="js/views/detail.js" defer></script>
+<script src="js/views/productForm.js" defer></script>
+<script src="js/views/categories.js" defer></script>
+<script src="js/app.js" defer></script>
 <script src="js/theme.js" defer></script>
 <script src="js/carousel.js" defer></script>
 <script src="js/menu.js" defer></script>
