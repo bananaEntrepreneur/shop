@@ -18,10 +18,13 @@
 }
 
 .product-card {
+    display: block;
     background-color: var(--color-surface);
     border-radius: 16px;
     padding: 16px;
     text-align: left;
+    text-decoration: none;
+    color: inherit;
     transition: transform 0.2s ease;
 }
 
