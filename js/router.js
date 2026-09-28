@@ -29,13 +29,16 @@ App.Router = (() => {
     }
 
     function render(hash) {
-        const path = hash.startsWith('/') ? hash : '/';
+        const [rawPath, queryString] = hash.split('?');
+        const path = rawPath.startsWith('/') ? rawPath : '/';
+        const query = new URLSearchParams(queryString || '');
         const found = match(path) || match('/');
-        found.render(found.params);
+        found.render(found.params, query);
     }
 
-    function navigate(path) {
-        location.hash = '#' + path;
+    function navigate(path, query) {
+        const queryString = query ? new URLSearchParams(query).toString() : '';
+        location.hash = '#' + path + (queryString ? '?' + queryString : '');
     }
 
     function start() {
