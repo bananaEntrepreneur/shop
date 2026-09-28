@@ -260,7 +260,7 @@
     display: flex;
     align-items: center;
     gap: 16px;
-    padding: 12px 16px;
+    padding: 14px 20px;
     background-color: var(--color-surface);
     border-radius: 12px;
 }
@@ -269,16 +269,23 @@
     display: flex;
     gap: 8px;
     flex: 1;
+    min-width: 0;
 }
 
 .category-rename-form input {
     flex: 1;
+    min-width: 0;
 }
 
 .category-count {
+    flex-shrink: 0;
     color: var(--color-text-secondary);
     font-size: 13px;
     white-space: nowrap;
+}
+
+.category-delete {
+    flex-shrink: 0;
 }
 
 /* Shared form controls */
@@ -298,8 +305,9 @@ textarea {
 }
 
 .btn--secondary {
-    background-color: var(--color-surface);
+    background-color: transparent;
     color: var(--color-text);
+    border: 1px solid var(--color-border);
 }
 
 .btn--danger {
