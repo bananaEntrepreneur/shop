@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Store self-check</title>
+</head>
+<body>
+<p>Open the console to see results.</p>
+<script src="../js/store.js"></script>
+<script>
+    const KEY = 'shop_catalog_test';
+    localStorage.removeItem(KEY);
+
+    let passed = 0, failed = 0;
+    function check(label, condition) {
+        console.assert(condition, label);
+        condition ? passed++ : failed++;
+    }
+
+    // seeding
+    const categories = App.Store.getCategories(KEY);
+    check('seeds 2 categories', categories.length === 2);
+    check('seeds 4 products total', categories.reduce((n, c) => n + c.products.length, 0) === 4);
+
+    // category CRUD
+    const cat = App.Store.addCategory('Books', KEY);
+    check('addCategory persists', App.Store.getCategory(cat.id, KEY)?.name === 'Books');
+    App.Store.updateCategory(cat.id, 'Books & Media', KEY);
+    check('updateCategory renames', App.Store.getCategory(cat.id, KEY).name === 'Books & Media');
+
+    // product CRUD
+    const product = App.Store.addProduct(cat.id, { name: 'Novel', price: 15, image: '', description: '' }, KEY);
+    check('addProduct persists', App.Store.getProduct(product.id, KEY)?.name === 'Novel');
+    App.Store.updateProduct(product.id, { price: 20 }, KEY);
+    check('updateProduct updates field', App.Store.getProduct(product.id, KEY).price === 20);
+    App.Store.deleteProduct(product.id, KEY);
+    check('deleteProduct removes it', App.Store.getProduct(product.id, KEY) === null);
+
+    // cascade delete
+    const cat2 = App.Store.addCategory('Toys', KEY);
+    const product2 = App.Store.addProduct(cat2.id, { name: 'Ball', price: 5, image: '', description: '' }, KEY);
+    App.Store.deleteCategory(cat2.id, KEY);
+    check('deleteCategory cascades to its products', App.Store.getProduct(product2.id, KEY) === null);
+
+    console.log(`${passed} passed, ${failed} failed`);
+    localStorage.removeItem(KEY);
+</script>
+</body>
+</html>
