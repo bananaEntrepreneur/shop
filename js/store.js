@@ -1,5 +1,9 @@
 window.App = window.App || {};
 
+App.escapeHtml = function (str) {
+    return String(str).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+};
+
 App.Store = (() => {
     const STORAGE_KEY = 'shop_catalog';
 
