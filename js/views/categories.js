@@ -8,24 +8,26 @@ App.Views.categories = function () {
         const categories = App.Store.getCategories();
 
         document.getElementById('app-page').innerHTML = `
-            <a href="#/catalog">&larr; Back to catalog</a>
-            <h2>Manage categories</h2>
-            <form id="add-category-form" class="category-form">
-                <input type="text" name="name" placeholder="New category name" required>
-                <button type="submit" class="btn">Add</button>
-            </form>
-            <ul class="category-list">
-                ${categories.map((c) => `
-                    <li class="category-row" data-id="${esc(c.id)}">
-                        <form class="category-rename-form">
-                            <input type="text" name="name" value="${esc(c.name)}" required>
-                            <button type="submit" class="btn btn--secondary">Save</button>
-                        </form>
-                        <span class="category-count">${c.products.length} product${c.products.length === 1 ? '' : 's'}</span>
-                        <button type="button" class="btn btn--danger category-delete">Delete</button>
-                    </li>
-                `).join('') || '<p>No categories yet.</p>'}
-            </ul>
+            <div class="app-page-inner narrow-page">
+                <a href="#/catalog" class="back-link">&larr; Back to catalog</a>
+                <h2>Manage categories</h2>
+                <form id="add-category-form" class="category-form">
+                    <input type="text" name="name" placeholder="New category name" required>
+                    <button type="submit" class="btn">Add</button>
+                </form>
+                <ul class="category-list">
+                    ${categories.map((c) => `
+                        <li class="category-row" data-id="${esc(c.id)}">
+                            <form class="category-rename-form">
+                                <input type="text" name="name" value="${esc(c.name)}" required>
+                                <button type="submit" class="btn btn--secondary">Save</button>
+                            </form>
+                            <span class="category-count">${c.products.length} product${c.products.length === 1 ? '' : 's'}</span>
+                            <button type="button" class="btn btn--danger category-delete">Delete</button>
+                        </li>
+                    `).join('') || '<p>No categories yet.</p>'}
+                </ul>
+            </div>
         `;
 
         document.getElementById('add-category-form').addEventListener('submit', (event) => {

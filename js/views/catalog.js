@@ -24,7 +24,7 @@ App.Views.catalog = function (query) {
     const esc = App.escapeHtml;
 
     document.getElementById('app-page').innerHTML = `
-        <div class="catalog-page">
+        <div class="app-page-inner catalog-page">
             <aside class="catalog-sidebar">
                 <div class="filter-group">
                     <h3>Category</h3>
