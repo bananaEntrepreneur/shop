@@ -43,7 +43,7 @@
     check('deleteCategory cascades to its products', App.Store.getProduct(product2.id, KEY) === null);
 
     // HTML escaping (product/category names get injected into innerHTML by the views)
-    check('escapeHtml neutralizes tags and quotes', App.escapeHtml('<script>alert(1)</script>"\'') === '&lt;script&gt;alert(1)&lt;/script&gt;&quot;&#39;');
+    check('escapeHtml neutralizes tags and quotes', App.escapeHtml('<img src=x>"\'') === '&lt;img src=x&gt;&quot;&#39;');
 
     console.log(`${passed} passed, ${failed} failed`);
     localStorage.removeItem(KEY);
