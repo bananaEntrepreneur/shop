@@ -10,7 +10,8 @@ App.Views.productForm = function (params) {
     }
 
     const esc = App.escapeHtml;
-    const { LIMITS, DEFAULT_IMAGE } = App.Store;
+    const { DEFAULT_IMAGE } = App.Store;
+    const { LIMITS } = App.Validate;
     const categories = App.Store.getCategories();
     if (categories.length === 0) {
         document.getElementById('app-page').innerHTML = `
@@ -90,7 +91,7 @@ App.Views.productForm = function (params) {
         const categoryId = formData.get('categoryId');
 
         if (editing) {
-            App.Store.updateProduct(product.id, data);
+            App.Store.updateProduct(product.id, { ...data, categoryId });
             App.Router.navigate(`/product/${encodeURIComponent(product.id)}`);
         } else {
             const created = App.Store.addProduct(categoryId, data);

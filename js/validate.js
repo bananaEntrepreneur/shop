@@ -1,7 +1,21 @@
 window.App = window.App || {};
 
 App.Validate = (() => {
-    const { LIMITS } = App.Store;
+    const LIMITS = {
+        id: 64,
+        categoryName: 60,
+        productName: 120,
+        description: 2000,
+        imageUrl: 2048,
+    };
+
+    function isHttpsUrl(value) {
+        try {
+            return new URL(value).protocol === 'https:';
+        } catch {
+            return false;
+        }
+    }
 
     function requiredText(value, label, max) {
         if (!value) return `${label} is required`;
@@ -24,15 +38,7 @@ App.Validate = (() => {
 
     function imageUrl(value) {
         if (!value) return '';
-        let parsed;
-        try {
-            parsed = new URL(value);
-        } catch {
-            return 'Image URL must be a valid http:// or https:// address';
-        }
-        return parsed.protocol === 'https:'
-            ? ''
-            : 'Image URL must start with https://';
+        return isHttpsUrl(value) ? '' : 'Image URL must be a valid https:// address';
     }
 
     const product = {
@@ -46,5 +52,5 @@ App.Validate = (() => {
         name: (value) => requiredText(value, 'Category name', LIMITS.categoryName),
     };
 
-    return { product, category };
+    return { LIMITS, isHttpsUrl, product, category };
 })();

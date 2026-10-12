@@ -6,10 +6,16 @@
 </head>
 <body>
 <p>Open the console to see results.</p>
+<script src="../js/dom.js"></script>
+<script src="../js/validate.js"></script>
 <script src="../js/store.js"></script>
 <script>
-    const KEY = 'shop_catalog_test';
-    localStorage.removeItem(KEY);
+    const memory = () => {
+        const m = new Map();
+        return { getItem: (k) => m.get(k) ?? null, setItem: (k, v) => m.set(k, String(v)) };
+    };
+    const storage = memory();
+    const store = App.createStore(storage, 'k');
 
     let passed = 0, failed = 0;
     function check(label, condition) {
@@ -18,35 +24,66 @@
     }
 
     // seeding
-    const categories = App.Store.getCategories(KEY);
-    check('seeds 2 categories', categories.length === 2);
+    const categories = store.getCategories();
+    check('seeds 3 categories', categories.length === 3);
     check('seeds 4 products total', categories.reduce((n, c) => n + c.products.length, 0) === 4);
 
     // category CRUD
-    const cat = App.Store.addCategory('Books', KEY);
-    check('addCategory persists', App.Store.getCategory(cat.id, KEY)?.name === 'Books');
-    App.Store.updateCategory(cat.id, 'Books & Media', KEY);
-    check('updateCategory renames', App.Store.getCategory(cat.id, KEY).name === 'Books & Media');
+    const cat = store.addCategory('Books');
+    check('addCategory persists', store.getCategory(cat.id)?.name === 'Books');
+    check('data survives a new store instance', App.createStore(storage, 'k').getCategory(cat.id)?.name === 'Books');
+    store.updateCategory(cat.id, 'Books & Media');
+    check('updateCategory renames', store.getCategory(cat.id).name === 'Books & Media');
 
     // product CRUD
-    const product = App.Store.addProduct(cat.id, { name: 'Novel', price: 15, image: '', description: '' }, KEY);
-    check('addProduct persists', App.Store.getProduct(product.id, KEY)?.name === 'Novel');
-    App.Store.updateProduct(product.id, { price: 20 }, KEY);
-    check('updateProduct updates field', App.Store.getProduct(product.id, KEY).price === 20);
-    App.Store.deleteProduct(product.id, KEY);
-    check('deleteProduct removes it', App.Store.getProduct(product.id, KEY) === null);
+    const product = store.addProduct(cat.id, { name: 'Novel', price: 15, image: '', description: '' });
+    check('addProduct persists', store.getProduct(product.id)?.name === 'Novel');
+    store.updateProduct(product.id, { price: 20 });
+    check('updateProduct updates field', store.getProduct(product.id).price === 20);
+    store.deleteProduct(product.id);
+    check('deleteProduct removes it', store.getProduct(product.id) === null);
+
+    // moving a product between categories
+    const [from, to] = store.getCategories();
+    const mover = store.addProduct(from.id, { name: 'Mover', price: 1, image: '', description: '' });
+    store.updateProduct(mover.id, { categoryId: to.id });
+    check('updateProduct moves product to another category',
+        store.getProduct(mover.id).categoryId === to.id && !store.getCategory(from.id).products.some((p) => p.id === mover.id));
+
+    // image normalization
+    const insecure = store.addProduct(from.id, { name: 'Img', price: 1, image: 'http://x.com/a.png', description: '' });
+    check('non-https image is dropped', insecure.image === '');
+    const secure = store.addProduct(from.id, { name: 'Img', price: 1, image: 'https://x.com/a.png', description: '' });
+    check('https image is kept', secure.image === 'https://x.com/a.png');
 
     // cascade delete
-    const cat2 = App.Store.addCategory('Toys', KEY);
-    const product2 = App.Store.addProduct(cat2.id, { name: 'Ball', price: 5, image: '', description: '' }, KEY);
-    App.Store.deleteCategory(cat2.id, KEY);
-    check('deleteCategory cascades to its products', App.Store.getProduct(product2.id, KEY) === null);
+    const cat2 = store.addCategory('Toys');
+    const product2 = store.addProduct(cat2.id, { name: 'Ball', price: 5, image: '', description: '' });
+    store.deleteCategory(cat2.id);
+    check('deleteCategory cascades to its products', store.getProduct(product2.id) === null);
+
+    // corrupted storage reseeds instead of crashing
+    for (const bad of ['{oops', 'null', '']) {
+        const s = memory();
+        s.setItem('k', bad);
+        check(`reseeds on corrupted storage (${JSON.stringify(bad)})`, App.createStore(s, 'k').getCategories().length === 3);
+    }
+
+    // a failed write must not leave a phantom record in memory
+    let fail = false;
+    const base = memory();
+    const flaky = { getItem: base.getItem, setItem: (k, v) => { if (fail) throw new Error('quota'); base.setItem(k, v); } };
+    const s3 = App.createStore(flaky, 'k');
+    s3.getCategories();
+    fail = true;
+    try { s3.addCategory('Ghost'); } catch {}
+    fail = false;
+    check('failed write leaves no phantom category', !s3.getCategories().some((c) => c.name === 'Ghost'));
 
     // HTML escaping (product/category names get injected into innerHTML by the views)
     check('escapeHtml neutralizes tags and quotes', App.escapeHtml('<img src=x>"\'') === '&lt;img src=x&gt;&quot;&#39;');
 
     console.log(`${passed} passed, ${failed} failed`);
-    localStorage.removeItem(KEY);
 </script>
 </body>
 </html>

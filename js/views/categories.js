@@ -3,7 +3,7 @@ App.Views = App.Views || {};
 
 App.Views.categories = function () {
     const esc = App.escapeHtml;
-    const { LIMITS } = App.Store;
+    const { LIMITS } = App.Validate;
 
     function render() {
         const categories = App.Store.getCategories();

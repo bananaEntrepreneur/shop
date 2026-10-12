@@ -1,14 +1,10 @@
 window.App = window.App || {};
 
-App.escapeHtml = function (str) {
-    return String(str).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
-};
-
-App.Store = (() => {
-    const STORAGE_KEY = 'shop_catalog';
+App.createStore = function (storage, key) {
+    const { LIMITS, isHttpsUrl } = App.Validate;
     const DEFAULT_IMAGE = 'https://placehold.co/400x400';
 
-    const defaultData = {
+    const seedData = () => ({
         categories: [
             {
                 id: 'clothing',
@@ -33,15 +29,7 @@ App.Store = (() => {
                 ],
             },
         ],
-    };
-
-    const LIMITS = {
-        id: 64,
-        categoryName: 60,
-        productName: 120,
-        description: 2000,
-        imageUrl: 2048,
-    };
+    });
 
     function toText(value, max) {
         if (typeof value !== 'string' || !Number.isInteger(max) || max <= 0) return '';
@@ -55,13 +43,7 @@ App.Store = (() => {
 
     function toImageUrl(value) {
         const url = toText(value, LIMITS.imageUrl);
-        if (!url) return '';
-        try {
-            const { protocol } = new URL(url);
-            return protocol === 'https:' ? url : '';
-        } catch {
-            return '';
-        }
+        return isHttpsUrl(url) ? url : '';
     }
 
     function normalizeProduct(raw) {
@@ -92,100 +74,102 @@ App.Store = (() => {
         };
     }
 
-    function load(key = STORAGE_KEY) {
-        const raw = localStorage.getItem(key);
-        if (!raw) {
-            const seeded = structuredClone(defaultData);
-            save(seeded, key);
-            return seeded;
-        }
+    let cache = null;
+    globalThis.addEventListener?.('storage', (e) => { if (e.key === key) cache = null; });
+
+    function save() {
         try {
-            return normalizeData(raw);
-        } catch {
-            const seeded = structuredClone(defaultData);
-            save(seeded, key);
-            return seeded;
+            storage.setItem(key, JSON.stringify(cache));
+        } catch (e) {
+            cache = null;
+            throw e;
         }
     }
 
-    function save(data, key = STORAGE_KEY) {
-        localStorage.setItem(key, JSON.stringify(data));
+    function load() {
+        if (cache) return cache;
+        try {
+            cache = normalizeData(storage.getItem(key));
+        } catch {
+            cache = seedData();
+            save();
+        }
+        return cache;
     }
 
-    function getCategories(key = STORAGE_KEY) {
-        return load(key).categories;
+    function getCategories() {
+        return load().categories;
     }
 
-    function getCategory(id, key = STORAGE_KEY) {
-        return getCategories(key).find((c) => c.id === id) || null;
+    function getCategory(id) {
+        return getCategories().find((c) => c.id === id) || null;
     }
 
-    function addCategory(name, key = STORAGE_KEY) {
-        const data = load(key);
+    function addCategory(name) {
+        const data = load();
         const category = { id: crypto.randomUUID(), name: toText(name, LIMITS.categoryName), products: [] };
         data.categories.push(category);
-        save(data, key);
+        save();
         return category;
     }
 
-    function updateCategory(id, name, key = STORAGE_KEY) {
-        const data = load(key);
-        const category = data.categories.find((c) => c.id === id);
+    function updateCategory(id, name) {
+        const category = load().categories.find((c) => c.id === id);
         if (!category) return null;
         category.name = toText(name, LIMITS.categoryName);
-        save(data, key);
+        save();
         return category;
     }
 
-    function deleteCategory(id, key = STORAGE_KEY) {
-        const data = load(key);
+    function deleteCategory(id) {
+        const data = load();
         data.categories = data.categories.filter((c) => c.id !== id);
-        save(data, key);
+        save();
     }
 
-    function getProduct(id, key = STORAGE_KEY) {
-        for (const category of getCategories(key)) {
+    function getProduct(id) {
+        for (const category of getCategories()) {
             const product = category.products.find((p) => p.id === id);
             if (product) return { ...product, categoryId: category.id, categoryName: category.name };
         }
         return null;
     }
 
-    function addProduct(categoryId, productData, key = STORAGE_KEY) {
-        const data = load(key);
-        const category = data.categories.find((c) => c.id === categoryId);
+    function addProduct(categoryId, productData) {
+        const category = load().categories.find((c) => c.id === categoryId);
         if (!category) return null;
         const product = normalizeProduct({ ...productData, id: crypto.randomUUID() });
         category.products.push(product);
-        save(data, key);
+        save();
         return product;
     }
 
-    function updateProduct(id, productData, key = STORAGE_KEY) {
-        const data = load(key);
-        for (const category of data.categories) {
+    function updateProduct(id, productData) {
+        const { categories } = load();
+        for (const category of categories) {
             const product = category.products.find((p) => p.id === id);
-            if (product) {
-                Object.assign(product, normalizeProduct({ ...product, ...productData, id: product.id }));
-                save(data, key);
-                return product;
+            if (!product) continue;
+            Object.assign(product, normalizeProduct({ ...product, ...productData, id }));
+            const target = categories.find((c) => c.id === productData.categoryId);
+            if (target && target !== category) {
+                category.products = category.products.filter((p) => p !== product);
+                target.products.push(product);
             }
+            save();
+            return product;
         }
         return null;
     }
 
-    function deleteProduct(id, key = STORAGE_KEY) {
-        const data = load(key);
-        for (const category of data.categories) {
+    function deleteProduct(id) {
+        for (const category of load().categories) {
             category.products = category.products.filter((p) => p.id !== id);
         }
-        save(data, key);
+        save();
     }
 
     return {
-        STORAGE_KEY,
         DEFAULT_IMAGE,
-        LIMITS,
         getCategories,
         getCategory,
         addCategory,
@@ -196,4 +180,6 @@ App.Store = (() => {
         updateProduct,
         deleteProduct,
     };
-})();
+};
+
+App.Store = App.createStore(localStorage, 'shop_catalog');
