@@ -2,10 +2,17 @@ window.App = window.App || {};
 App.Views = App.Views || {};
 
 App.Views.catalog = function (query) {
+    const { DEFAULT_IMAGE } = App.Store;
+
+    function toPriceFilter(value) {
+        const price = Number(value);
+        return value && Number.isFinite(price) && price >= 0 ? String(price) : '';
+    }
+
     const categories = App.Store.getCategories();
     const selectedCategories = query.getAll('category');
-    const minPrice = query.get('minPrice') || '';
-    const maxPrice = query.get('maxPrice') || '';
+    const minPrice = toPriceFilter(query.get('minPrice'));
+    const maxPrice = toPriceFilter(query.get('maxPrice'));
 
     let products = [];
     categories.forEach((category) => {
@@ -54,11 +61,11 @@ App.Views.catalog = function (query) {
                 </div>
                 <div class="product-grid">
                     ${products.map((product) => `
-                        <a class="product-card" href="#/product/${product.id}">
-                            <img src="${esc(product.image)}" alt="${esc(product.name)}">
+                        <a class="product-card" href="#/product/${encodeURIComponent(product.id)}">
+                            <img src="${esc(product.image || DEFAULT_IMAGE)}" alt="${esc(product.name)}">
                             <div class="product-info">
                                 <h3>${esc(product.name)}</h3>
-                                <p class="product-price">${product.price} $</p>
+                                <p class="product-price">${esc(product.price)} $</p>
                             </div>
                         </a>
                     `).join('') || '<p class="catalog-empty">No products match your filters.</p>'}
