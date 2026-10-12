@@ -18,6 +18,8 @@ App.Router = (() => {
     }
 
     function matchPath(pattern, path) {
+        if (pattern === '*') return {};
+
         const patternParts = pattern.split('/');
         const pathParts = path.split('/');
         if (patternParts.length !== pathParts.length) return null;
@@ -42,8 +44,9 @@ App.Router = (() => {
     }
 
     function render() {
-        const [path, queryString = ''] = location.hash.slice(1).split('?');
-        const route = findRoute(path) || findRoute('/');
+        const [hashPath, queryString = ''] = location.hash.slice(1).split('?');
+        const path = hashPath || '/';
+        const route = findRoute(path);
         const result = route.view({ params: route.params, query: new URLSearchParams(queryString) });
 
         if (result.redirect) {
@@ -65,10 +68,7 @@ App.Router = (() => {
 
     function start(element) {
         outlet = element;
-        window.addEventListener('hashchange', () => {
-            const isPlainAnchor = location.hash !== '' && !location.hash.startsWith('#/');
-            if (!isPlainAnchor) render();
-        });
+        window.addEventListener('hashchange', render);
         render();
     }
 

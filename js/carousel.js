@@ -1,22 +1,12 @@
-const prevBtn = document.querySelector('.carousel-btn--prev');
-const nextBtn = document.querySelector('.carousel-btn--next');
-const slides = document.querySelectorAll('.carousel-slide');
+window.App = window.App || {};
 
-let currentIndex = 0;
+App.initCarousel = function (carousel) {
+    const track = carousel.querySelector('.carousel-track');
 
-function goToSlide(index) {
-    currentIndex = Math.max(0, Math.min(index, slides.length - 1));
-    slides[currentIndex].scrollIntoView({
-        behavior: 'smooth',
-        inline: 'start',
-        block: 'nearest',
-    });
-}
+    function scrollByOneSlide(direction) {
+        track.scrollBy({ left: direction * track.clientWidth, behavior: 'smooth' });
+    }
 
-nextBtn.addEventListener('click', () => {
-    goToSlide(currentIndex + 1);
-});
-
-prevBtn.addEventListener('click', () => {
-    goToSlide(currentIndex - 1);
-});
+    carousel.querySelector('.carousel-btn--prev').addEventListener('click', () => scrollByOneSlide(-1));
+    carousel.querySelector('.carousel-btn--next').addEventListener('click', () => scrollByOneSlide(1));
+};

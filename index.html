@@ -16,142 +16,21 @@
     <link rel="stylesheet" href="css/footer.css">
 </head>
 <body>
-<header>
-    <nav>
-        <ul>
-            <li><a href="#/catalog">Catalog</a></li>
-            <li><a href="#faq">FAQ</a></li>
-            <li><a href="#about">About</a></li>
-        </ul>
-    </nav>
-
-    <a href="#top" class="logo">Shop</a>
-
-    <div class="header-actions">
-        <button id="theme-toggle" class="icon-btn">
-            <svg class="icon-sun" height="24px" viewBox="0 -960 960 960" width="24px" fill="currentColor"><path d="M565-395q35-35 35-85t-35-85q-35-35-85-35t-85 35q-35 35-35 85t35 85q35 35 85 35t85-35Zm-226.5 56.5Q280-397 280-480t58.5-141.5Q397-680 480-680t141.5 58.5Q680-563 680-480t-58.5 141.5Q563-280 480-280t-141.5-58.5ZM200-440H40v-80h160v80Zm720 0H760v-80h160v80ZM440-760v-160h80v160h-80Zm0 720v-160h80v160h-80ZM256-650l-101-97 57-59 96 100-52 56Zm492 496-97-101 53-55 101 97-57 59Zm-98-550 97-101 59 57-100 96-56-52ZM154-212l101-97 55 53-97 101-59-57Zm326-268Z"/></svg>
-            <svg class="icon-moon" height="24px" viewBox="0 -960 960 960" width="24px" fill="currentColor"><path d="M480-120q-150 0-255-105T120-480q0-150 105-255t255-105q14 0 27.5 1t26.5 3q-41 29-65.5 75.5T444-660q0 90 63 153t153 63q55 0 101-24.5t75-65.5q2 13 3 26.5t1 27.5q0 150-105 255T480-120Zm0-80q88 0 158-48.5T740-375q-20 5-40 8t-40 3q-123 0-209.5-86.5T364-660q0-20 3-40t8-40q-78 32-126.5 102T200-480q0 116 82 198t198 82Zm-10-270Z"/></svg>
-        </button>
-        <button id="menu-toggle" class="menu-icon">
-            <span></span>
-            <span></span>
-            <span></span>
-        </button>
-    </div>
-</header>
-<main>
-    <div id="landing-page">
-    <section class="hero" id="top">
-        <h1>Find what you need</h1>
-        <p>High-quality products with delivery across country</p>
-        <a href="#/catalog" class="btn">Browse Catalog</a>
-    </section>
-    <section class="carousel" id="promo">
-        <h2>Special offers</h2>
-
-        <div class="carousel-wrapper">
-            <button class="carousel-btn carousel-btn--prev"><svg height="24px" viewBox="0 -960 960 960" width="24px" fill="currentColor"><path d="M400-240 160-480l240-240 56 58-142 142h486v80H314l142 142-56 58Z"/></svg></button>
-
-            <ul class="carousel-track">
-                <li class="carousel-slide">
-                    <img src="https://placehold.co/600x300" alt="10% discount on first order">
-                    <p>10% discount on first order</p>
-                </li>
-                <li class="carousel-slide">
-                    <img src="https://placehold.co/600x300" alt="New arrivals">
-                    <p>New arrivals</p>
-                </li>
-                <li class="carousel-slide">
-                    <img src="https://placehold.co/600x300" alt="Free shipping from 10$">
-                    <p>Free shipping from 10$</p>
-                </li>
-            </ul>
-
-            <button class="carousel-btn carousel-btn--next"><svg height="24px" viewBox="0 -960 960 960" width="24px" fill="currentColor"><path d="m560-240-56-58 142-142H160v-80h486L504-662l56-58 240 240-240 240Z"/></svg></button>
-        </div>
-    </section>
-    <section class="faq" id="faq">
-        <h2>Frequently Asked Questions</h2>
-
-        <div class="faq-list">
-            <details class="faq-item">
-                <summary>How do I place an order?</summary>
-                <p>Add a product to your cart, proceed to checkout, and enter your delivery address and payment method.</p>
-            </details>
-
-            <details class="faq-item">
-                <summary>How long does delivery take?</summary>
-                <p>Delivery usually takes 4 to 10 business days, depending on your region.</p>
-            </details>
-
-            <details class="faq-item">
-                <summary>Can I return a product?</summary>
-                <p>Yes, returns are accepted within 14 days of receiving your order, as long as the item is unused.</p>
-            </details>
-
-            <details class="faq-item">
-                <summary>What payment methods are available?</summary>
-                <p>You can pay online by card, or in cash/by card upon delivery.</p>
-            </details>
-        </div>
-    </section>
-    <section class="about" id="about">
-        <h2>About Shop</h2>
-        <p class="about-text">Shop is a curated store for people who care about quality and simplicity. We pick every product ourselves and ship it fast, wherever you are.</p>
-
-        <div class="about-features">
-            <div class="about-feature">
-                <h3>Quality</h3>
-                <p>Every product is checked before it reaches you.</p>
-            </div>
-            <div class="about-feature">
-                <h3>Fast delivery</h3>
-                <p>Orders ship within 24 hours.</p>
-            </div>
-            <div class="about-feature">
-                <h3>Secure payment</h3>
-                <p>Your data and payments are always protected.</p>
-            </div>
-        </div>
-    </section>
-    </div>
-    <div id="app-page" hidden></div>
-</main>
-<footer>
-    <div class="footer-content">
-        <div class="footer-brand">
-            <p class="footer-logo">Shop</p>
-            <p>Quality products, delivered fast.</p>
-        </div>
-
-        <nav class="footer-nav">
-            <ul>
-                <li><a href="#/catalog">Catalog</a></li>
-                <li><a href="#faq">FAQ</a></li>
-                <li><a href="#about">About</a></li>
-            </ul>
-        </nav>
-
-        <div class="footer-social">
-            <a href="#">Instagram</a>
-            <a href="#">Telegram</a>
-        </div>
-    </div>
-
-    <p class="footer-copyright">&copy; 2026 Shop. All rights reserved.</p>
-</footer>
+<div id="app"></div>
 <script src="js/dom.js" defer></script>
+<script src="js/icons.js" defer></script>
 <script src="js/validate.js" defer></script>
 <script src="js/store.js" defer></script>
 <script src="js/router.js" defer></script>
 <script src="js/form.js" defer></script>
+<script src="js/layout.js" defer></script>
+<script src="js/carousel.js" defer></script>
+<script src="js/views/landing.js" defer></script>
 <script src="js/views/catalog.js" defer></script>
 <script src="js/views/detail.js" defer></script>
 <script src="js/views/productForm.js" defer></script>
 <script src="js/views/categories.js" defer></script>
-<script src="js/app.js" defer></script>
-<script src="js/theme.js" defer></script>
-<script src="js/carousel.js" defer></script>
-<script src="js/menu.js" defer></script>
+<script src="js/views/notFound.js" defer></script>
+<script src="js/main.js" defer></script>
 </body>
 </html>
