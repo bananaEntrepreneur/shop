@@ -10,6 +10,7 @@ App.Views.productForm = function (params) {
     }
 
     const esc = App.escapeHtml;
+    const { LIMITS, DEFAULT_IMAGE } = App.Store;
     const categories = App.Store.getCategories();
     if (categories.length === 0) {
         document.getElementById('app-page').innerHTML = `
@@ -29,16 +30,16 @@ App.Views.productForm = function (params) {
             <h2>${editing ? 'Edit product' : 'Add product'}</h2>
             <form class="product-form" id="product-form">
                 <label>Name
-                    <input type="text" name="name" required value="${esc(product ? product.name : '')}">
+                    <input type="text" name="name" required maxlength="${LIMITS.productName}" value="${esc(product ? product.name : '')}">
                 </label>
                 <label>Price ($)
                     <input type="number" name="price" min="0" step="0.01" required value="${esc(product ? product.price : '')}">
                 </label>
                 <label>Image URL
-                    <input type="url" name="image" value="${esc(product ? product.image : '')}" placeholder="https://placehold.co/400x400">
+                    <input type="url" name="image" maxlength="${LIMITS.imageUrl}" value="${esc(product ? product.image : '')}" placeholder="${DEFAULT_IMAGE}">
                 </label>
                 <label>Description
-                    <textarea name="description">${esc(product ? product.description || '' : '')}</textarea>
+                    <textarea name="description" maxlength="${LIMITS.description}">${esc(product ? product.description || '' : '')}</textarea>
                 </label>
                 <label>Category
                     <select name="categoryId">
@@ -53,23 +54,48 @@ App.Views.productForm = function (params) {
         </div>
     `;
 
-    document.getElementById('product-form').addEventListener('submit', (event) => {
+    const form = document.getElementById('product-form');
+    const fields = {
+        name: form.elements.name,
+        price: form.elements.price,
+        image: form.elements.image,
+        description: form.elements.description,
+    };
+
+    Object.values(fields).forEach((field) => {
+        field.addEventListener('input', () => field.setCustomValidity(''));
+    });
+
+    form.addEventListener('submit', (event) => {
         event.preventDefault();
-        const formData = new FormData(event.target);
+
+        let firstInvalid = null;
+        for (const [name, field] of Object.entries(fields)) {
+            const message = App.Validate.product[name](field.value.trim());
+            field.setCustomValidity(message);
+            if (message && !firstInvalid) firstInvalid = field;
+        }
+        if (firstInvalid) {
+            firstInvalid.reportValidity();
+            return;
+        }
+
+        const formData = new FormData(form);
         const data = {
             name: formData.get('name').trim(),
             price: Number(formData.get('price')),
-            image: formData.get('image').trim() || 'https://placehold.co/400x400',
+            image: formData.get('image').trim() || DEFAULT_IMAGE,
             description: formData.get('description').trim(),
         };
         const categoryId = formData.get('categoryId');
 
         if (editing) {
             App.Store.updateProduct(product.id, data);
-            App.Router.navigate(`/product/${product.id}`);
+            App.Router.navigate(`/product/${encodeURIComponent(product.id)}`);
         } else {
             const created = App.Store.addProduct(categoryId, data);
-            App.Router.navigate(`/product/${created.id}`);
+            if (!created) return;
+            App.Router.navigate(`/product/${encodeURIComponent(created.id)}`);
         }
     });
 };
