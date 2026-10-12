@@ -58,48 +58,20 @@ App.Views.productForm = function ({ params }) {
         `,
         mount(root) {
             const form = root.querySelector('#product-form');
-            const fields = {
-                name: form.elements.name,
-                price: form.elements.price,
-                image: form.elements.image,
-                description: form.elements.description,
-            };
 
-            Object.values(fields).forEach((field) => {
-                field.addEventListener('input', () => field.setCustomValidity(''));
-            });
-
-            form.addEventListener('submit', (event) => {
-                event.preventDefault();
-
-                let firstInvalid = null;
-                for (const [name, field] of Object.entries(fields)) {
-                    const message = App.Validate.product[name](field.value.trim());
-                    field.setCustomValidity(message);
-                    if (message && !firstInvalid) firstInvalid = field;
-                }
-                if (firstInvalid) {
-                    firstInvalid.reportValidity();
-                    return;
-                }
-
-                const formData = new FormData(form);
+            App.bindForm(form, App.Validate.product, (values) => {
                 const data = {
-                    name: formData.get('name').trim(),
-                    price: Number(formData.get('price')),
-                    image: formData.get('image').trim() || DEFAULT_IMAGE,
-                    description: formData.get('description').trim(),
+                    name: values.name,
+                    price: Number(values.price),
+                    image: values.image || DEFAULT_IMAGE,
+                    description: values.description,
                 };
-                const categoryId = formData.get('categoryId');
+                const categoryId = form.elements.categoryId.value;
 
-                if (editing) {
-                    App.Store.updateProduct(product.id, { ...data, categoryId });
-                    App.Router.navigate(`/product/${encodeURIComponent(product.id)}`);
-                } else {
-                    const created = App.Store.addProduct(categoryId, data);
-                    if (!created) return;
-                    App.Router.navigate(`/product/${encodeURIComponent(created.id)}`);
-                }
+                const saved = editing
+                    ? App.Store.updateProduct(product.id, { ...data, categoryId })
+                    : App.Store.addProduct(categoryId, data);
+                if (saved) App.Router.navigate(`/product/${encodeURIComponent(saved.id)}`);
             });
         },
     };

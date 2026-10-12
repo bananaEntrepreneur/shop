@@ -33,23 +33,7 @@ App.Views.categories = function () {
             </div>
         `,
         mount(root) {
-            function bindValidation(form, onValid) {
-                const input = form.elements.name;
-                input.addEventListener('input', () => input.setCustomValidity(''));
-                form.addEventListener('submit', (event) => {
-                    event.preventDefault();
-                    const name = input.value.trim();
-                    const message = App.Validate.category.name(name);
-                    input.setCustomValidity(message);
-                    if (message) {
-                        input.reportValidity();
-                        return;
-                    }
-                    onValid(name);
-                });
-            }
-
-            bindValidation(root.querySelector('#add-category-form'), (name) => {
+            App.bindForm(root.querySelector('#add-category-form'), App.Validate.category, ({ name }) => {
                 App.Store.addCategory(name);
                 App.Router.refresh();
             });
@@ -57,7 +41,7 @@ App.Views.categories = function () {
             root.querySelectorAll('.category-row').forEach((row) => {
                 const id = row.dataset.id;
 
-                bindValidation(row.querySelector('.category-rename-form'), (name) => {
+                App.bindForm(row.querySelector('.category-rename-form'), App.Validate.category, ({ name }) => {
                     App.Store.updateCategory(id, name);
                     App.Router.refresh();
                 });
