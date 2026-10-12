@@ -21,7 +21,11 @@ App.Router = (() => {
             const m = path.match(route.regex);
             if (m) {
                 const params = {};
-                route.paramNames.forEach((name, i) => { params[name] = decodeURIComponent(m[i + 1]); });
+                try {
+                    route.paramNames.forEach((name, i) => { params[name] = decodeURIComponent(m[i + 1]); });
+                } catch {
+                    return null;
+                }
                 return { render: route.render, params };
             }
         }

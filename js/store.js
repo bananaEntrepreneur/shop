@@ -6,6 +6,7 @@ App.escapeHtml = function (str) {
 
 App.Store = (() => {
     const STORAGE_KEY = 'shop_catalog';
+    const DEFAULT_IMAGE = 'https://placehold.co/400x400';
 
     const defaultData = {
         categories: [
@@ -13,20 +14,77 @@ App.Store = (() => {
                 id: 'clothing',
                 name: 'Clothing',
                 products: [
-                    { id: crypto.randomUUID(), name: 'Old Money Polo', price: 29, image: 'https://placehold.co/400x400', description: 'Old Money Polo, M size.' },
+                    { id: crypto.randomUUID(), name: 'Old Money Polo', price: 29, image: DEFAULT_IMAGE, description: 'Old Money Polo, M size.' },
                 ],
             },
             {
                 id: 'home-tech',
                 name: 'Home & Tech',
                 products: [
-                    { id: crypto.randomUUID(), name: 'Memento RAM', price: 67, image: 'https://placehold.co/400x400', description: 'Memento RAM module.' },
-                    { id: crypto.randomUUID(), name: 'Clin Window Cleaner', price: 4, image: 'https://placehold.co/400x400', description: 'Clin Window Cleaner.' },
-                    { id: crypto.randomUUID(), name: 'Axel Parrot Statue', price: 12, image: 'https://placehold.co/400x400', description: 'Axel Parrot Statue.' },
+                    { id: crypto.randomUUID(), name: 'Memento RAM', price: 67, image: DEFAULT_IMAGE, description: 'Memento RAM module.' },
+                    { id: crypto.randomUUID(), name: 'Clin Window Cleaner', price: 4, image: DEFAULT_IMAGE, description: 'Clin Window Cleaner.' },
+                    { id: crypto.randomUUID(), name: 'Axel Parrot Statue', price: 12, image: DEFAULT_IMAGE, description: 'Axel Parrot Statue.' },
                 ],
             },
         ],
     };
+
+    const LIMITS = {
+        id: 64,
+        categoryName: 60,
+        productName: 120,
+        description: 2000,
+        imageUrl: 2048,
+    };
+
+    function toText(value, max) {
+        if (typeof value !== 'string' || !Number.isInteger(max) || max <= 0) return '';
+        return value.trim().slice(0, max);
+    }
+
+    function toPrice(value) {
+        const price = Number(value);
+        return Number.isFinite(price) && price >= 0 ? price : 0;
+    }
+
+    function toImageUrl(value) {
+        const url = toText(value, LIMITS.imageUrl);
+        if (!url) return '';
+        try {
+            const { protocol } = new URL(url);
+            return protocol === 'https:' ? url : '';
+        } catch {
+            return '';
+        }
+    }
+
+    function normalizeProduct(raw) {
+        const product = raw && typeof raw === 'object' ? raw : {};
+        return {
+            id: toText(product.id, LIMITS.id),
+            name: toText(product.name, LIMITS.productName),
+            price: toPrice(product.price),
+            image: toImageUrl(product.image),
+            description: toText(product.description, LIMITS.description),
+        };
+    }
+
+    function normalizeCategory(raw) {
+        const category = raw && typeof raw === 'object' ? raw : {};
+        return {
+            id: toText(category.id, LIMITS.id),
+            name: toText(category.name, LIMITS.categoryName),
+            products: Array.isArray(category.products) ? category.products.map(normalizeProduct) : [],
+        };
+    }
+
+    function normalizeData(raw) {
+        const parsed = JSON.parse(raw);
+        if (!parsed || typeof parsed !== 'object') throw new TypeError('catalog is not an object');
+        return {
+            categories: Array.isArray(parsed.categories) ? parsed.categories.map(normalizeCategory) : [],
+        };
+    }
 
     function load(key = STORAGE_KEY) {
         const raw = localStorage.getItem(key);
@@ -35,7 +93,13 @@ App.Store = (() => {
             save(seeded, key);
             return seeded;
         }
-        return JSON.parse(raw);
+        try {
+            return normalizeData(raw);
+        } catch {
+            const seeded = structuredClone(defaultData);
+            save(seeded, key);
+            return seeded;
+        }
     }
 
     function save(data, key = STORAGE_KEY) {
@@ -52,7 +116,7 @@ App.Store = (() => {
 
     function addCategory(name, key = STORAGE_KEY) {
         const data = load(key);
-        const category = { id: crypto.randomUUID(), name, products: [] };
+        const category = { id: crypto.randomUUID(), name: toText(name, LIMITS.categoryName), products: [] };
         data.categories.push(category);
         save(data, key);
         return category;
@@ -62,7 +126,7 @@ App.Store = (() => {
         const data = load(key);
         const category = data.categories.find((c) => c.id === id);
         if (!category) return null;
-        category.name = name;
+        category.name = toText(name, LIMITS.categoryName);
         save(data, key);
         return category;
     }
@@ -85,7 +149,7 @@ App.Store = (() => {
         const data = load(key);
         const category = data.categories.find((c) => c.id === categoryId);
         if (!category) return null;
-        const product = { id: crypto.randomUUID(), ...productData };
+        const product = normalizeProduct({ ...productData, id: crypto.randomUUID() });
         category.products.push(product);
         save(data, key);
         return product;
@@ -96,7 +160,7 @@ App.Store = (() => {
         for (const category of data.categories) {
             const product = category.products.find((p) => p.id === id);
             if (product) {
-                Object.assign(product, productData);
+                Object.assign(product, normalizeProduct({ ...product, ...productData, id: product.id }));
                 save(data, key);
                 return product;
             }
@@ -114,6 +178,8 @@ App.Store = (() => {
 
     return {
         STORAGE_KEY,
+        DEFAULT_IMAGE,
+        LIMITS,
         getCategories,
         getCategory,
         addCategory,
