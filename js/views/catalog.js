@@ -2,18 +2,25 @@ window.App = window.App || {};
 App.Views = App.Views || {};
 
 App.filterProducts = function (categories, query) {
-    const toPrice = (value) => {
+    function parsePrice(value) {
+        if (!value) return null;
         const price = Number(value);
-        return value && Number.isFinite(price) && price >= 0 ? price : null;
-    };
+        return Number.isFinite(price) && price >= 0 ? price : null;
+    }
+
     const selected = query.getAll('category');
-    const min = toPrice(query.get('minPrice'));
-    const max = toPrice(query.get('maxPrice'));
-    const products = categories
-        .flatMap((c) => c.products.map((p) => ({ ...p, categoryId: c.id, categoryName: c.name })))
-        .filter((p) => (!selected.length || selected.includes(p.categoryId))
-            && (min === null || p.price >= min)
-            && (max === null || p.price <= max));
+    const min = parsePrice(query.get('minPrice'));
+    const max = parsePrice(query.get('maxPrice'));
+
+    const products = [];
+    for (const category of categories) {
+        for (const product of category.products) {
+            const inCategory = selected.length === 0 || selected.includes(category.id);
+            const aboveMin = min === null || product.price >= min;
+            const belowMax = max === null || product.price <= max;
+            if (inCategory && aboveMin && belowMax) products.push(product);
+        }
+    }
     return { products, selected, min, max };
 };
 

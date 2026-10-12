@@ -37,14 +37,16 @@ App.Validate = (() => {
     }
 
     function imageUrl(value) {
-        if (!value) return '';
-        return isHttpsUrl(value) ? '' : 'Image URL must be a valid https:// address';
+        const tooLong = optionalText(value, 'Image URL', LIMITS.imageUrl);
+        if (tooLong) return tooLong;
+        if (value && !isHttpsUrl(value)) return 'Image URL must be a valid https:// address';
+        return '';
     }
 
     const product = {
         name: (value) => requiredText(value, 'Name', LIMITS.productName),
         price,
-        image: (value) => optionalText(value, 'Image URL', LIMITS.imageUrl) || imageUrl(value),
+        image: imageUrl,
         description: (value) => optionalText(value, 'Description', LIMITS.description),
     };
 

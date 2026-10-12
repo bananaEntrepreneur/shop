@@ -3,52 +3,59 @@ window.App = window.App || {};
 App.Router = (() => {
     const routes = [];
     let outlet;
-    let lastPath;
+    let currentPath;
 
     function register(pattern, view) {
-        const paramNames = [];
-        const regex = new RegExp(
-            '^' +
-            pattern.replace(/:([^/]+)/g, (_, name) => {
-                paramNames.push(name);
-                return '([^/]+)';
-            }) +
-            '$'
-        );
-        routes.push({ regex, paramNames, view });
+        routes.push({ pattern, view });
     }
 
-    function match(path) {
-        for (const route of routes) {
-            const m = path.match(route.regex);
-            if (m) {
-                const params = {};
-                try {
-                    route.paramNames.forEach((name, i) => { params[name] = decodeURIComponent(m[i + 1]); });
-                } catch {
-                    return null;
-                }
-                return { view: route.view, params };
+    function decode(value) {
+        try {
+            return decodeURIComponent(value);
+        } catch {
+            return value;
+        }
+    }
+
+    function matchPath(pattern, path) {
+        const patternParts = pattern.split('/');
+        const pathParts = path.split('/');
+        if (patternParts.length !== pathParts.length) return null;
+
+        const params = {};
+        for (let i = 0; i < patternParts.length; i++) {
+            if (patternParts[i].startsWith(':')) {
+                params[patternParts[i].slice(1)] = decode(pathParts[i]);
+            } else if (patternParts[i] !== pathParts[i]) {
+                return null;
             }
+        }
+        return params;
+    }
+
+    function findRoute(path) {
+        for (const route of routes) {
+            const params = matchPath(route.pattern, path);
+            if (params) return { view: route.view, params };
         }
         return null;
     }
 
     function render() {
-        const [rawPath, queryString] = location.hash.slice(1).split('?');
-        const path = rawPath.startsWith('/') ? rawPath : '/';
-        const found = match(path) || match('/');
-        const result = found.view({ params: found.params, query: new URLSearchParams(queryString || '') });
+        const [path, queryString = ''] = location.hash.slice(1).split('?');
+        const route = findRoute(path) || findRoute('/');
+        const result = route.view({ params: route.params, query: new URLSearchParams(queryString) });
 
         if (result.redirect) {
-            location.replace('#' + result.redirect); // replace, not push: Back must not return to the dead URL
+            location.replace('#' + result.redirect);
             return;
         }
+
         outlet.innerHTML = result.html;
         document.title = result.title ? `${result.title} · Shop` : 'Shop';
-        if (path !== lastPath) scrollTo(0, 0); // a filter change only alters the query: keep the scroll
-        lastPath = path;
-        result.mount?.(outlet);
+        if (path !== currentPath) window.scrollTo(0, 0);
+        currentPath = path;
+        if (result.mount) result.mount(outlet);
     }
 
     function navigate(path, query) {
@@ -56,12 +63,11 @@ App.Router = (() => {
         location.hash = '#' + path + (queryString ? '?' + queryString : '');
     }
 
-    function start(el) {
-        outlet = el;
+    function start(element) {
+        outlet = element;
         window.addEventListener('hashchange', () => {
-            const hash = location.hash;
-            if (hash && !hash.startsWith('#/')) return;
-            render();
+            const isPlainAnchor = location.hash !== '' && !location.hash.startsWith('#/');
+            if (!isPlainAnchor) render();
         });
         render();
     }

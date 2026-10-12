@@ -4,18 +4,20 @@ App.escapeHtml = function (str) {
     return String(str).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 };
 
-(() => {
-    class Raw {
-        constructor(markup) { this.markup = markup; }
-        toString() { return this.markup; }
-    }
+App.raw = function (markup) {
+    return { isRaw: true, markup, toString: () => markup };
+};
 
-    const part = (value) => {
-        if (value instanceof Raw) return value.markup;
-        if (Array.isArray(value)) return value.map(part).join('');
-        return App.escapeHtml(value ?? '');
-    };
+App.toHtml = function (value) {
+    if (value?.isRaw) return value.markup;
+    if (Array.isArray(value)) return value.map(App.toHtml).join('');
+    return App.escapeHtml(value ?? '');
+};
 
-    App.raw = (markup) => new Raw(markup);
-    App.html = (strings, ...values) => new Raw(strings.reduce((out, s, i) => out + part(values[i - 1]) + s));
-})();
+App.html = function (strings, ...values) {
+    let markup = strings[0];
+    values.forEach((value, i) => {
+        markup += App.toHtml(value) + strings[i + 1];
+    });
+    return App.raw(markup);
+};

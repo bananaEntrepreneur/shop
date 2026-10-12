@@ -4,36 +4,41 @@ App.createStore = function (storage, key) {
     const { LIMITS, isHttpsUrl } = App.Validate;
     const DEFAULT_IMAGE = 'https://placehold.co/400x400';
 
-    const seedData = () => ({
-        categories: [
-            {
-                id: 'clothing',
-                name: 'Clothing',
-                products: [
-                    { id: crypto.randomUUID(), name: 'Old Money Polo', price: 29, image: DEFAULT_IMAGE, description: 'Old Money Polo, M size.' },
-                ],
-            },
-            {
-                id: 'home',
-                name: 'Home',
-                products: [
-                    { id: crypto.randomUUID(), name: 'Clin Window Cleaner', price: 4, image: DEFAULT_IMAGE, description: 'Clin Window Cleaner.' },
-                    { id: crypto.randomUUID(), name: 'Axel Parrot Statue', price: 12, image: DEFAULT_IMAGE, description: 'Axel Parrot Statue.' },
-                ],
-            },
-            {
-                id: 'tech',
-                name: 'Tech',
-                products: [
-                    { id: crypto.randomUUID(), name: 'Memento RAM', price: 67, image: DEFAULT_IMAGE, description: 'Memento RAM module.' },
-                ],
-            },
-        ],
-    });
+    function seedData() {
+        return {
+            categories: [
+                {
+                    id: 'clothing',
+                    name: 'Clothing',
+                    products: [
+                        { id: crypto.randomUUID(), name: 'Old Money Polo', price: 29, image: DEFAULT_IMAGE, description: 'Old Money Polo, M size.' },
+                    ],
+                },
+                {
+                    id: 'home',
+                    name: 'Home',
+                    products: [
+                        { id: crypto.randomUUID(), name: 'Clin Window Cleaner', price: 4, image: DEFAULT_IMAGE, description: 'Clin Window Cleaner.' },
+                        { id: crypto.randomUUID(), name: 'Axel Parrot Statue', price: 12, image: DEFAULT_IMAGE, description: 'Axel Parrot Statue.' },
+                    ],
+                },
+                {
+                    id: 'tech',
+                    name: 'Tech',
+                    products: [
+                        { id: crypto.randomUUID(), name: 'Memento RAM', price: 67, image: DEFAULT_IMAGE, description: 'Memento RAM module.' },
+                    ],
+                },
+            ],
+        };
+    }
 
-    function toText(value, max) {
-        if (typeof value !== 'string' || !Number.isInteger(max) || max <= 0) return '';
-        return value.trim().slice(0, max);
+    function asObject(value) {
+        return value && typeof value === 'object' ? value : {};
+    }
+
+    function toText(value, maxLength) {
+        return typeof value === 'string' ? value.trim().slice(0, maxLength) : '';
     }
 
     function toPrice(value) {
@@ -47,7 +52,7 @@ App.createStore = function (storage, key) {
     }
 
     function normalizeProduct(raw) {
-        const product = raw && typeof raw === 'object' ? raw : {};
+        const product = asObject(raw);
         return {
             id: toText(product.id, LIMITS.id),
             name: toText(product.name, LIMITS.productName),
@@ -58,7 +63,7 @@ App.createStore = function (storage, key) {
     }
 
     function normalizeCategory(raw) {
-        const category = raw && typeof raw === 'object' ? raw : {};
+        const category = asObject(raw);
         return {
             id: toText(category.id, LIMITS.id),
             name: toText(category.name, LIMITS.categoryName),
@@ -67,34 +72,32 @@ App.createStore = function (storage, key) {
     }
 
     function normalizeData(raw) {
-        const parsed = JSON.parse(raw);
-        if (!parsed || typeof parsed !== 'object') throw new TypeError('catalog is not an object');
+        const data = asObject(raw);
         return {
-            categories: Array.isArray(parsed.categories) ? parsed.categories.map(normalizeCategory) : [],
+            categories: Array.isArray(data.categories) ? data.categories.map(normalizeCategory) : [],
         };
     }
 
-    let cache = null;
-    globalThis.addEventListener?.('storage', (e) => { if (e.key === key) cache = null; });
-
-    function save() {
+    function readSaved() {
         try {
-            storage.setItem(key, JSON.stringify(cache));
-        } catch (e) {
-            cache = null;
-            throw e;
+            const parsed = JSON.parse(storage.getItem(key));
+            return parsed && typeof parsed === 'object' ? normalizeData(parsed) : null;
+        } catch {
+            return null;
         }
     }
 
+    function save(data) {
+        storage.setItem(key, JSON.stringify(data));
+    }
+
     function load() {
-        if (cache) return cache;
-        try {
-            cache = normalizeData(storage.getItem(key));
-        } catch {
-            cache = seedData();
-            save();
-        }
-        return cache;
+        const saved = readSaved();
+        if (saved) return saved;
+
+        const seed = seedData();
+        save(seed);
+        return seed;
     }
 
     function getCategories() {
@@ -109,22 +112,24 @@ App.createStore = function (storage, key) {
         const data = load();
         const category = { id: crypto.randomUUID(), name: toText(name, LIMITS.categoryName), products: [] };
         data.categories.push(category);
-        save();
+        save(data);
         return category;
     }
 
     function updateCategory(id, name) {
-        const category = load().categories.find((c) => c.id === id);
+        const data = load();
+        const category = data.categories.find((c) => c.id === id);
         if (!category) return null;
+
         category.name = toText(name, LIMITS.categoryName);
-        save();
+        save(data);
         return category;
     }
 
     function deleteCategory(id) {
         const data = load();
         data.categories = data.categories.filter((c) => c.id !== id);
-        save();
+        save(data);
     }
 
     function getProduct(id) {
@@ -136,36 +141,42 @@ App.createStore = function (storage, key) {
     }
 
     function addProduct(categoryId, productData) {
-        const category = load().categories.find((c) => c.id === categoryId);
+        const data = load();
+        const category = data.categories.find((c) => c.id === categoryId);
         if (!category) return null;
+
         const product = normalizeProduct({ ...productData, id: crypto.randomUUID() });
         category.products.push(product);
-        save();
+        save(data);
         return product;
     }
 
     function updateProduct(id, productData) {
-        const { categories } = load();
-        for (const category of categories) {
-            const product = category.products.find((p) => p.id === id);
-            if (!product) continue;
-            Object.assign(product, normalizeProduct({ ...product, ...productData, id }));
-            const target = categories.find((c) => c.id === productData.categoryId);
-            if (target && target !== category) {
-                category.products = category.products.filter((p) => p !== product);
-                target.products.push(product);
+        const data = load();
+        for (const category of data.categories) {
+            const index = category.products.findIndex((p) => p.id === id);
+            if (index === -1) continue;
+
+            const updated = normalizeProduct({ ...category.products[index], ...productData, id });
+            const target = data.categories.find((c) => c.id === productData.categoryId) || category;
+            if (target === category) {
+                category.products[index] = updated;
+            } else {
+                category.products.splice(index, 1);
+                target.products.push(updated);
             }
-            save();
-            return product;
+            save(data);
+            return updated;
         }
         return null;
     }
 
     function deleteProduct(id) {
-        for (const category of load().categories) {
+        const data = load();
+        for (const category of data.categories) {
             category.products = category.products.filter((p) => p.id !== id);
         }
-        save();
+        save(data);
     }
 
     return {
