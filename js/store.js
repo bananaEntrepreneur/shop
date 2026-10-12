@@ -18,12 +18,18 @@ App.Store = (() => {
                 ],
             },
             {
-                id: 'home-tech',
-                name: 'Home & Tech',
+                id: 'home',
+                name: 'Home',
                 products: [
-                    { id: crypto.randomUUID(), name: 'Memento RAM', price: 67, image: DEFAULT_IMAGE, description: 'Memento RAM module.' },
                     { id: crypto.randomUUID(), name: 'Clin Window Cleaner', price: 4, image: DEFAULT_IMAGE, description: 'Clin Window Cleaner.' },
                     { id: crypto.randomUUID(), name: 'Axel Parrot Statue', price: 12, image: DEFAULT_IMAGE, description: 'Axel Parrot Statue.' },
+                ],
+            },
+            {
+                id: 'tech',
+                name: 'Tech',
+                products: [
+                    { id: crypto.randomUUID(), name: 'Memento RAM', price: 67, image: DEFAULT_IMAGE, description: 'Memento RAM module.' },
                 ],
             },
         ],
