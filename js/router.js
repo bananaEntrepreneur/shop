@@ -2,8 +2,10 @@ window.App = window.App || {};
 
 App.Router = (() => {
     const routes = [];
+    let outlet;
+    let lastPath;
 
-    function register(pattern, render) {
+    function register(pattern, view) {
         const paramNames = [];
         const regex = new RegExp(
             '^' +
@@ -13,7 +15,7 @@ App.Router = (() => {
             }) +
             '$'
         );
-        routes.push({ regex, paramNames, render });
+        routes.push({ regex, paramNames, view });
     }
 
     function match(path) {
@@ -26,18 +28,27 @@ App.Router = (() => {
                 } catch {
                     return null;
                 }
-                return { render: route.render, params };
+                return { view: route.view, params };
             }
         }
         return null;
     }
 
-    function render(hash) {
-        const [rawPath, queryString] = hash.split('?');
+    function render() {
+        const [rawPath, queryString] = location.hash.slice(1).split('?');
         const path = rawPath.startsWith('/') ? rawPath : '/';
-        const query = new URLSearchParams(queryString || '');
         const found = match(path) || match('/');
-        found.render(found.params, query);
+        const result = found.view({ params: found.params, query: new URLSearchParams(queryString || '') });
+
+        if (result.redirect) {
+            location.replace('#' + result.redirect); // replace, not push: Back must not return to the dead URL
+            return;
+        }
+        outlet.innerHTML = result.html;
+        document.title = result.title ? `${result.title} · Shop` : 'Shop';
+        if (path !== lastPath) scrollTo(0, 0); // a filter change only alters the query: keep the scroll
+        lastPath = path;
+        result.mount?.(outlet);
     }
 
     function navigate(path, query) {
@@ -45,15 +56,15 @@ App.Router = (() => {
         location.hash = '#' + path + (queryString ? '?' + queryString : '');
     }
 
-    function start() {
-        render(location.hash.slice(1));
-
+    function start(el) {
+        outlet = el;
         window.addEventListener('hashchange', () => {
-            const hash = location.hash.slice(1);
-            if (!hash.startsWith('/')) return;
-            render(hash);
+            const hash = location.hash;
+            if (hash && !hash.startsWith('#/')) return;
+            render();
         });
+        render();
     }
 
-    return { register, navigate, start };
+    return { register, navigate, refresh: render, start };
 })();

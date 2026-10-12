@@ -9,6 +9,7 @@
 <script src="../js/dom.js"></script>
 <script src="../js/validate.js"></script>
 <script src="../js/store.js"></script>
+<script src="../js/views/catalog.js"></script>
 <script>
     const memory = () => {
         const m = new Map();
@@ -82,6 +83,24 @@
 
     // HTML escaping (product/category names get injected into innerHTML by the views)
     check('escapeHtml neutralizes tags and quotes', App.escapeHtml('<img src=x>"\'') === '&lt;img src=x&gt;&quot;&#39;');
+
+    // html`` template: escapes interpolations, nests, and lets App.raw through
+    const evil = '<img src=x onerror=alert(1)>';
+    check('html`` escapes interpolations', String(App.html`<p>${evil}</p>`) === '<p>&lt;img src=x onerror=alert(1)&gt;</p>');
+    check('html`` nests templates and arrays', String(App.html`<ul>${[1, 2].map((n) => App.html`<li>${n}</li>`)}</ul>`) === '<ul><li>1</li><li>2</li></ul>');
+    check('html`` renders null as empty and keeps 0', String(App.html`${null}|${0}`) === '|0');
+    check('App.raw is not escaped', String(App.html`${App.raw('<b>x</b>')}`) === '<b>x</b>');
+
+    // catalog filtering (pure)
+    const cats = App.createStore(memory(), 'f').getCategories(); // fresh seed: 1 + 2 + 1 products
+    const q = (s) => new URLSearchParams(s);
+    const f = (s) => App.filterProducts(cats, q(s));
+    check('no filters returns every product', f('').products.length === 4);
+    check('category filter', f('category=home').products.every((p) => p.categoryId === 'home') && f('category=home').products.length === 2);
+    check('multiple categories are OR-ed', f('category=home&category=tech').products.length === 3);
+    check('min/max price', f('minPrice=10&maxPrice=30').products.every((p) => p.price >= 10 && p.price <= 30));
+    check('garbage price is ignored', f('minPrice=abc&maxPrice=-5').products.length === f('').products.length);
+    check('minPrice=0 is a real filter value', f('minPrice=0').min === 0);
 
     console.log(`${passed} passed, ${failed} failed`);
 </script>
